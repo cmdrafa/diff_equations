@@ -1,7 +1,7 @@
 import sympy as sym
-from least_squares_funcs import least_squares, comparison_plot, least_squares_orth
+from least_squares_funcs import least_squares, regression, comparison_plot, least_squares_orth
 
-N = 3
+N = 17
 x = sym.Symbol('x')
 psi = [sym.sin(sym.pi*(i+1)*x) for i in range(N+1)]
 f0 = 9; f1 = -1
