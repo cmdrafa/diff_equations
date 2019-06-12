@@ -30,6 +30,30 @@ def least_squares(f, psi, Omega, symbolic=True):
     return u, c
 
 
+def least_squares_orth(f, psi, Omega, symbolic='true'):
+    N = len(psi) - 1
+    A = [0]*(N+1)
+    b = [0]*(N+1)
+    x = sym.Symbol('x')
+    for i in range(N+1):
+        # Diagonal Matrix term
+        A[i] = sym.integrate(psi[i]**2, (x, Omega[0], Omega[1]))
+
+        # Right rand side term
+        integrand = psi[i]*f
+        if symbolic:
+            I = sym.integrate(integrand,  (x, Omega[0], Omega[1]))
+        if not symbolic or isinstance(I, sym.Integral):
+            print('Numerical integration of', integrand)
+            integrand = sym.lambdify([x], integrand)
+            I = sym.mpmath.quad(integrand, [Omega[0], Omega[1]])
+        b[i] = I
+    c = [b[i]/A[i] for i in range(len(b))]
+    u = 0
+    u = sum(c[i]*psi[i] for i in range(len(psi)))
+    return u, c
+
+
 def comparison_plot(f, u, Omega, filename='tmp.pdf'):
     x = sym.Symbol('x')
     f = sym.lambdify([x], f, modules='numpy')
