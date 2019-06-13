@@ -34,7 +34,6 @@ def Lagrange_polynomials(x, N, Omega, point_distribution='uniform'):
 
 def Chebyshev_Nodes(a, b, N):
     from math import cos, pi
-    half = 0.5
-    nodes = [0.5*(a+b) + 0.5*(b-a)*cos(float(2*i+1)/(2*(N+1))*pi)
+    nodes = [half*(a+b) + half*(b-a)*cos(float(2*i+1)/(2*(N+1))*pi)
              for i in range(N+1)]
     return nodes

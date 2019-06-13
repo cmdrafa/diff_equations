@@ -45,7 +45,6 @@ def least_squares_orth(f, psi, Omega, symbolic='true'):
         if symbolic:
             I = sym.integrate(integrand,  (x, Omega[0], Omega[1]))
         if not symbolic or isinstance(I, sym.Integral):
-            print('Numerical integration of', integrand)
             integrand = sym.lambdify([x], integrand)
             I = sym.mpmath.quad(integrand, [Omega[0], Omega[1]])
         b[i] = I
