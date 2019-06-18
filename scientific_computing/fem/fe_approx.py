@@ -1,5 +1,18 @@
 import sympy as sym
 import numpy as np
+from mpmath import quad
+
+
+def mesh_uniform(N_e, d, Omega=[0, 1], symbolic=False):
+    if symbolic:
+        h = sym.Symbol('h')
+        dx = h*sym.Rational(1, d)
+        nodes = [Omega[0] + i*dx for i in range(N_e*d + 1)]
+    else:
+        nodes = np.linspace(Omega[0], Omega[1], N_e*d + 1).tolist()
+    elements = [[e*d + i for i in range(d+1)]
+                for e in range(N_e)]
+    return nodes, elements
 
 
 def Lagrange_polynomial(x, i, points):
@@ -68,26 +81,27 @@ def element_matrix(phi, Omega_e, symbolic=True):
 def element_vector(f, phi, Omega_e, symbolic=True):
     n = len(phi)
     b_e = sym.zeros(n, 1)
-    # Make f a function of X
+    # Make f a function of X (via f.subs to avoid floats from lambdify)
     X = sym.Symbol('X')
     if symbolic:
         h = sym.Symbol('h')
     else:
         h = Omega_e[1] - Omega_e[0]
-
     x = (Omega_e[0] + Omega_e[1])/2 + h/2*X  # mapping
-    f = f.subs('x', x)
-    detJ = h/2
+    f = f.subs('x', x)  # or subs(sym.Symbol('x'), x)?
+    detJ = h/2  # dx/dX
     for r in range(n):
         if symbolic:
             I = sym.integrate(f*phi[r]*detJ, (X, -1, 1))
         if not symbolic or isinstance(I, sym.Integral):
+            # Ensure h is numerical
             h = Omega_e[1] - Omega_e[0]
             detJ = h/2
             integrand = sym.lambdify([X], f*phi[r]*detJ)
-            I = sym.mpmath.quad(integrand, [-1, 1])
+            I = quad(integrand, [-1, 1])
         b_e[r] = I
     return b_e
+
 
 def assemble(nodes, elements, phi, f, symbolic=True):
     N_n, N_e = len(nodes), len(elements)
@@ -105,6 +119,6 @@ def assemble(nodes, elements, phi, f, symbolic=True):
 
         for r in range(len(elements[e])):
             for s in range(len(elements[e])):
-                A[elements[e][r],elements[e][s]] += A_e[r,s]
+                A[elements[e][r], elements[e][s]] += A_e[r, s]
             b[elements[e][r]] += b_e[r]
     return A, b
